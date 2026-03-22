@@ -196,19 +196,4 @@ MIT License
 
 ---
 
-## 👥 开发团队
-
-- **Product**: 北野武
-- **Tech Lead**: AI Assistant
-- **UI Design**: 通义万相
-
----
-
-## 📞 联系方式
-
-- **GitHub**: https://github.com/NUK96/PetCare
-- **Email**: support@petcare.app
-
----
-
 **感谢使用 PetCare！** 🐾
