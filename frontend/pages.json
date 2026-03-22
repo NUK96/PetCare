@@ -1,0 +1,81 @@
+{
+  "name": "uni-app",
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^u--(.*)": "uview-ui/components/u-$1/u-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "PetCare 宠护",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/pet-detail/pet-detail",
+      "style": {
+        "navigationBarTitleText": "宠物详情"
+      }
+    },
+    {
+      "path": "pages/add-pet/add-pet",
+      "style": {
+        "navigationBarTitleText": "添加宠物"
+      }
+    },
+    {
+      "path": "pages/vaccine-record/vaccine-record",
+      "style": {
+        "navigationBarTitleText": "疫苗记录"
+      }
+    },
+    {
+      "path": "pages/deworming-record/deworming-record",
+      "style": {
+        "navigationBarTitleText": "驱虫记录"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationBarTitleText": "个人中心"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "PetCare",
+    "navigationBarBackgroundColor": "#FF9500",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#FF9500",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/pet-detail/pet-detail",
+        "iconPath": "static/tabbar/pet.png",
+        "selectedIconPath": "static/tabbar/pet-active.png",
+        "text": "宠物"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "iconPath": "static/tabbar/profile.png",
+        "selectedIconPath": "static/tabbar/profile-active.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "uniIdRouter": {}
+}
