@@ -1,0 +1,23 @@
+{
+  "name": "petcare-frontend",
+  "version": "1.0.0",
+  "description": "PetCare - 宠物健康管理应用 (前端)",
+  "main": "main.js",
+  "scripts": {
+    "dev": "uni -p mp-weixin",
+    "build": "uni build -p mp-weixin",
+    "dev:h5": "uni -p h5",
+    "build:h5": "uni build -p h5"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "^3.0.0",
+    "vue": "^3.2.45",
+    "pinia": "^2.0.30",
+    "uview-ui": "^2.0.36"
+  },
+  "devDependencies": {
+    "@dcloudio/uni-cli-shared": "^3.0.0",
+    "@dcloudio/vite-plugin-uni": "^3.0.0",
+    "vite": "^4.0.0"
+  }
+}
