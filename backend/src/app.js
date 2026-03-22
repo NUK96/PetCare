@@ -22,6 +22,9 @@ const dewormingRoutes = require('./routes/dewormings');
 const healthRoutes = require('./routes/health');
 const knowledgeRoutes = require('./routes/knowledge');
 
+// 导入中间件
+const authMiddleware = require('./middleware/auth');
+
 // 创建 Express 应用
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,11 +49,11 @@ app.get('/health', (req, res) => {
 
 // API 路由
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/pets', petRoutes);
-app.use('/api/v1/vaccines', vaccineRoutes);
-app.use('/api/v1/dewormings', dewormingRoutes);
-app.use('/api/v1/health', healthRoutes);
+app.use('/api/v1/users', authMiddleware, userRoutes);
+app.use('/api/v1/pets', authMiddleware, petRoutes);
+app.use('/api/v1/vaccines', authMiddleware, vaccineRoutes);
+app.use('/api/v1/dewormings', authMiddleware, dewormingRoutes);
+app.use('/api/v1/health', authMiddleware, healthRoutes);
 app.use('/api/v1/knowledge', knowledgeRoutes);
 
 // 404 处理
