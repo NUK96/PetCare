@@ -10,7 +10,7 @@ curl -X POST https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/imag
   -H "Content-Type: application/json" \
   -H "X-DashScope-Async: enable" \
   -d '{
-    "model": "wanx2.1-turbo",
+    "model": "wanx-v1",
     "input": {
       "prompt": "手机 App UI 设计，宠物健康管理应用首页，清新可爱风格，温暖的橙色和白色主色调，包含宠物卡片列表、添加宠物按钮、疫苗提醒卡片、驱虫提醒卡片，现代化扁平设计，高清专业 UI 设计稿，Figma 风格"
     },
