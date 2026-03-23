@@ -77,82 +77,150 @@
 </template>
 
 <script>
+import { api, getToken } from '@/utils/api.js';
+
 export default {
   data() {
     return {
       keyword: '',
       pets: [],
-      reminders: []
+      reminders: [],
+      loading: false
     }
   },
   
   onLoad() {
-    this.loadPets()
-    this.loadReminders()
+    // 检查登录状态
+    if (!getToken()) {
+      uni.reLaunch({ url: '/pages/login/login' });
+      return;
+    }
+    this.loadPets();
+    this.loadReminders();
   },
   
   onPullDownRefresh() {
-    this.loadPets()
-    this.loadReminders()
-    uni.stopPullDownRefresh()
+    this.loadPets();
+    this.loadReminders();
+    uni.stopPullDownRefresh();
+  },
+  
+  onShow() {
+    // 页面显示时刷新数据
+    this.loadPets();
+    this.loadReminders();
   },
   
   methods: {
     // 加载宠物列表
     async loadPets() {
+      if (this.loading) return;
+      
       try {
-        // TODO: 调用 API
-        // const res = await this.$api.getPets()
-        // this.pets = res.data
-        
-        // 模拟数据
-        this.pets = [
-          { id: 1, name: '咪咪', breed: '英短', gender: 'female', avatar: '' },
-          { id: 2, name: '汪汪', breed: '金毛', gender: 'male', avatar: '' }
-        ]
+        this.loading = true;
+        const res = await api.getPets();
+        if (res.code === 200) {
+          this.pets = res.data || [];
+        }
       } catch (error) {
-        console.error('Load pets error:', error)
+        console.error('Load pets error:', error);
         uni.showToast({
-          title: '加载失败',
+          title: error.message || '加载失败',
           icon: 'none'
-        })
+        });
+        // 如果失败，使用空数组
+        this.pets = [];
+      } finally {
+        this.loading = false;
       }
     },
     
     // 加载提醒
     async loadReminders() {
       try {
-        // TODO: 调用 API
-        // const res = await this.$api.getReminders()
-        // this.reminders = res.data
+        // 获取所有宠物的即将到期提醒
+        const allReminders = [];
         
-        // 模拟数据
-        this.reminders = [
-          { type: 'vaccine', petName: '咪咪', item: '猫三联', days: 3 },
-          { type: 'deworming', petName: '汪汪', item: '体内驱虫', days: 7 }
-        ]
+        for (const pet of this.pets) {
+          try {
+            const [vaccines, dewormings] = await Promise.all([
+              api.getUpcomingVaccines(pet.id),
+              api.getUpcomingDewormings(pet.id)
+            ]);
+            
+            if (vaccines.code === 200 && vaccines.data?.length) {
+              vaccines.data.forEach(v => {
+                allReminders.push({
+                  type: 'vaccine',
+                  petId: pet.id,
+                  petName: pet.name,
+                  item: v.vaccine_name,
+                  date: v.next_date,
+                  days: this.calculateDays(v.next_date)
+                });
+              });
+            }
+            
+            if (dewormings.code === 200 && dewormings.data?.length) {
+              dewormings.data.forEach(d => {
+                allReminders.push({
+                  type: 'deworming',
+                  petId: pet.id,
+                  petName: pet.name,
+                  item: d.type === 'internal' ? '体内驱虫' : (d.type === 'external' ? '体外驱虫' : '全面驱虫'),
+                  date: d.next_date,
+                  days: this.calculateDays(d.next_date)
+                });
+              });
+            }
+          } catch (e) {
+            console.warn(`Get reminders for pet ${pet.id} failed:`, e);
+          }
+        }
+        
+        // 按天数排序
+        this.reminders = allReminders.sort((a, b) => a.days - b.days);
       } catch (error) {
-        console.error('Load reminders error:', error)
+        console.error('Load reminders error:', error);
+        this.reminders = [];
       }
+    },
+    
+    // 计算剩余天数
+    calculateDays(dateStr) {
+      if (!dateStr) return 999;
+      const targetDate = new Date(dateStr);
+      const now = new Date();
+      const diffTime = targetDate - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
     },
     
     // 搜索
     onSearch() {
-      console.log('Search:', this.keyword)
+      if (!this.keyword.trim()) {
+        this.loadPets();
+        return;
+      }
+      
+      this.pets = this.pets.filter(pet => 
+        pet.name.includes(this.keyword) || 
+        (pet.breed && pet.breed.includes(this.keyword))
+      );
     },
     
     // 跳转到添加宠物
     goToAddPet() {
       uni.navigateTo({
         url: '/pages/add-pet/add-pet'
-      })
+      });
     },
     
     // 跳转到宠物详情
     goToPetDetail(petId) {
       uni.navigateTo({
         url: `/pages/pet-detail/pet-detail?id=${petId}`
-      })
+      });
     }
   }
 }

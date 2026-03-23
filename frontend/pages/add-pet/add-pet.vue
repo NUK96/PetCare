@@ -133,10 +133,13 @@
 </template>
 
 <script>
+import { api } from '@/utils/api.js';
+
 export default {
   data() {
     return {
       avatar: '',
+      avatarTempPath: '',
       form: {
         name: '',
         species: 'cat',
@@ -157,19 +160,41 @@ export default {
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],
         success: (res) => {
-          this.avatar = res.tempFilePaths[0]
+          this.avatarTempPath = res.tempFilePaths[0];
+          this.avatar = res.tempFilePaths[0];
         }
-      })
+      });
     },
     
     // 生日选择
     onBirthdayChange(e) {
-      this.form.birthday = e.detail.value
+      this.form.birthday = e.detail.value;
     },
     
     // 绝育开关
     onNeuteredChange(e) {
-      this.form.neutered = e.detail.value
+      this.form.neutered = e.detail.value;
+    },
+    
+    // 上传照片到服务器
+    async uploadAvatar() {
+      if (!this.avatarTempPath) return null;
+      
+      return new Promise((resolve, reject) => {
+        uni.uploadFile({
+          url: `${process.env.VUE_APP_BASE_URL || 'http://localhost:3000/api/v1'}/upload/avatar`,
+          filePath: this.avatarTempPath,
+          name: 'file',
+          success: (res) => {
+            const data = JSON.parse(res.data);
+            resolve(data.url);
+          },
+          fail: (err) => {
+            console.warn('Upload avatar failed:', err);
+            resolve(null);
+          }
+        });
+      });
     },
     
     // 提交
@@ -179,31 +204,45 @@ export default {
         uni.showToast({
           title: '请输入宠物名字',
           icon: 'none'
-        })
-        return
+        });
+        return;
       }
       
       try {
-        // TODO: 调用 API
-        // await this.$api.createPet({
-        //   ...this.form,
-        //   avatar: this.avatar
-        // })
+        uni.showLoading({ title: '保存中...' });
         
-        uni.showToast({
-          title: '保存成功',
-          icon: 'success'
-        })
+        // 上传头像
+        const avatarUrl = await this.uploadAvatar();
         
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 1500)
+        // 创建宠物
+        const petData = {
+          ...this.form,
+          avatar: avatarUrl || '',
+          weight: this.form.weight ? parseFloat(this.form.weight) : null
+        };
+        
+        const res = await api.createPet(petData);
+        
+        if (res.code === 201) {
+          uni.hideLoading();
+          uni.showToast({
+            title: '保存成功',
+            icon: 'success'
+          });
+          
+          setTimeout(() => {
+            uni.navigateBack();
+          }, 1500);
+        } else {
+          throw new Error(res.message || '保存失败');
+        }
       } catch (error) {
-        console.error('Create pet error:', error)
+        console.error('Create pet error:', error);
+        uni.hideLoading();
         uni.showToast({
-          title: '保存失败',
+          title: error.message || '保存失败',
           icon: 'none'
-        })
+        });
       }
     }
   }

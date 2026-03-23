@@ -58,6 +58,8 @@
 </template>
 
 <script>
+import { api, setToken } from '@/utils/api.js';
+
 export default {
   data() {
     return {
@@ -70,7 +72,7 @@ export default {
   
   onUnload() {
     if (this.timer) {
-      clearInterval(this.timer)
+      clearInterval(this.timer);
     }
   },
   
@@ -78,44 +80,37 @@ export default {
     // 微信登录
     async wechatLogin() {
       try {
-        uni.showLoading({
-          title: '登录中...'
-        })
+        uni.showLoading({ title: '登录中...' });
 
         // 微信小程序登录
         // #ifdef MP-WEIXIN
-        const { code } = await uni.wxLogin({})
+        const { code } = await uni.wxLogin({});
         
-        // TODO: 调用后端 API
-        // const res = await this.$api.login({
-        //   type: 'wechat',
-        //   code
-        // })
+        const res = await api.login(code);
         
-        // 模拟登录成功
-        setTimeout(() => {
-          uni.hideLoading()
-          uni.setStorageSync('token', 'mock_token_123456')
-          uni.switchTab({
-            url: '/pages/index/index'
-          })
-        }, 1500)
+        if (res.code === 200) {
+          setToken(res.data.token);
+          uni.hideLoading();
+          uni.switchTab({ url: '/pages/index/index' });
+        } else {
+          throw new Error(res.message || '登录失败');
+        }
         // #endif
         
         // #ifndef MP-WEIXIN
-        uni.hideLoading()
+        uni.hideLoading();
         uni.showToast({
           title: '请在微信小程序中使用',
           icon: 'none'
-        })
+        });
         // #endif
       } catch (error) {
-        console.error('Wechat login error:', error)
-        uni.hideLoading()
+        console.error('Wechat login error:', error);
+        uni.hideLoading();
         uni.showToast({
-          title: '登录失败',
+          title: error.message || '登录失败',
           icon: 'none'
-        })
+        });
       }
     },
     
