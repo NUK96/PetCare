@@ -14,16 +14,41 @@ const { param, query, validationResult } = require('express-validator');
 router.get('/', async (req, res) => {
   try {
     const { category, breed, keyword, page = 1, pageSize = 20 } = req.query;
+    const db = require('../config/database.sqlite');
     
-    // TODO: 查询知识库
-    // const articles = await KnowledgeBase.find({ category, breed, keyword });
-
+    let sql = `SELECT * FROM knowledge_base WHERE is_published = 1`;
+    const params = [];
+    
+    if (category) {
+      sql += ` AND category = ?`;
+      params.push(category);
+    }
+    
+    if (breed) {
+      sql += ` AND (breed = ? OR breed IS NULL)`;
+      params.push(breed);
+    }
+    
+    if (keyword) {
+      sql += ` AND (title LIKE ? OR content LIKE ?)`;
+      params.push(`%${keyword}%`, `%${keyword}%`);
+    }
+    
+    const offset = (page - 1) * pageSize;
+    sql += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+    params.push(parseInt(pageSize), offset);
+    
+    const list = await db.query(sql, params);
+    
+    const countSql = `SELECT COUNT(*) as total FROM knowledge_base WHERE is_published = 1`;
+    const total = await db.queryOne(countSql);
+    
     res.json({
       code: 200,
       message: 'success',
       data: {
-        list: [],
-        total: 0,
+        list,
+        total: total.total || 0,
         page: parseInt(page),
         pageSize: parseInt(pageSize)
       }

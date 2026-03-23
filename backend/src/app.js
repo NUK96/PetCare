@@ -11,7 +11,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
+const path = require('path');
 require('dotenv').config();
+
+// 使用 SQLite (快速部署模式)
+const db = require('./config/database.sqlite');
+console.log('✅ SQLite database initialized');
 
 // 导入路由
 const authRoutes = require('./routes/auth');
@@ -36,6 +41,10 @@ app.use(compression()); // 压缩
 app.use(morgan('combined')); // 日志
 app.use(express.json()); // JSON 解析
 app.use(express.urlencoded({ extended: true })); // URL 编码解析
+
+// 静态文件服务 (首页和测试页面)
+app.use('/', express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // 健康检查
 app.get('/health', (req, res) => {
@@ -75,8 +84,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 启动服务器
-app.listen(PORT, () => {
+// 启动服务器 (监听 0.0.0.0 允许外部访问)
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔═══════════════════════════════════════════════╗
 ║                                               ║
@@ -84,6 +93,7 @@ app.listen(PORT, () => {
 ║                                               ║
 ║   Version: 1.0.0                              ║
 ║   Port: ${PORT}                                    ║
+║   Host: 0.0.0.0                               ║
 ║   Environment: ${process.env.NODE_ENV || 'development'}                      ║
 ║                                               ║
 ║   Ready to serve!                             ║

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetCare 宠护 - API 服务</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #FF9500 0%, #FFB347 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #FF9500;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .status {
+      background: #f0f0f0;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+    .status-ok {
+      color: #34C759;
+      font-weight: bold;
+    }
+    .api-list {
+      list-style: none;
+    }
+    .api-item {
+      padding: 15px;
+      border-left: 4px solid #FF9500;
+      background: #FFF5E6;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+    .api-method {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 12px;
+      margin-right: 10px;
+    }
+    .get { background: #34C759; color: white; }
+    .post { background: #007AFF; color: white; }
+    .put { background: #FF9500; color: white; }
+    .delete { background: #FF3B30; color: white; }
+    .api-path {
+      font-family: 'Courier New', monospace;
+      color: #333;
+      font-size: 14px;
+    }
+    .api-desc {
+      color: #666;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+    .test-btn {
+      background: #FF9500;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    .test-btn:hover {
+      background: #FF8C00;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      color: #999;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐾 PetCare 宠护</h1>
+    <p class="subtitle">科学养宠，从记录开始</p>
+
+    <div class="status">
+      <p>服务状态：<span class="status-ok">✅ 运行中</span></p>
+      <p>端口：3000</p>
+      <p>环境：development</p>
+      <p>数据库：SQLite</p>
+    </div>
+
+    <h3 style="margin-bottom: 15px; color: #333;">📋 主要 API 接口</h3>
+    <ul class="api-list">
+      <li class="api-item">
+        <span class="api-method get">GET</span>
+        <span class="api-path">/api/v1/health</span>
+        <div class="api-desc">健康检查</div>
+        <button class="test-btn" onclick="testApi('/api/v1/health')">测试</button>
+      </li>
+      <li class="api-item">
+        <span class="api-method get">GET</span>
+        <span class="api-path">/api/v1/knowledge</span>
+        <div class="api-desc">获取知识库列表</div>
+        <button class="test-btn" onclick="testApi('/api/v1/knowledge')">测试</button>
+      </li>
+      <li class="api-item">
+        <span class="api-method post">POST</span>
+        <span class="api-path">/api/v1/auth/login</span>
+        <div class="api-desc">微信登录</div>
+        <button class="test-btn" onclick="testLogin()">测试</button>
+      </li>
+      <li class="api-item">
+        <span class="api-method get">GET</span>
+        <span class="api-path">/api/v1/pets</span>
+        <div class="api-desc">获取宠物列表 (需登录)</div>
+      </li>
+      <li class="api-item">
+        <span class="api-method get">GET</span>
+        <span class="api-path">/api/v1/vaccines</span>
+        <div class="api-desc">获取疫苗记录 (需登录)</div>
+      </li>
+      <li class="api-item">
+        <span class="api-method get">GET</span>
+        <span class="api-path">/api/v1/dewormings</span>
+        <div class="api-desc">获取驱虫记录 (需登录)</div>
+      </li>
+    </ul>
+
+    <div id="test-result" style="margin-top: 20px; padding: 15px; background: #f8f8f8; border-radius: 8px; display: none;">
+      <h4 style="margin-bottom: 10px; color: #333;">测试结果:</h4>
+      <pre id="result-content" style="white-space: pre-wrap; font-size: 12px; color: #333;"></pre>
+    </div>
+
+    <div class="footer">
+      <p>PetCare v1.0.0 | 后端服务已启动 | 前端开发完成</p>
+      <p>GitHub: <a href="https://github.com/NUK96/PetCare" target="_blank" style="color: #FF9500;">github.com/NUK96/PetCare</a></p>
+    </div>
+  </div>
+
+  <script>
+    async function testApi(path) {
+      try {
+        const response = await fetch(path);
+        const data = await response.json();
+        document.getElementById('result-content').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('test-result').style.display = 'block';
+      } catch (error) {
+        document.getElementById('result-content').textContent = 'Error: ' + error.message;
+        document.getElementById('test-result').style.display = 'block';
+      }
+    }
+
+    async function testLogin() {
+      try {
+        const response = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: 'test_code_123' })
+        });
+        const data = await response.json();
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          document.getElementById('result-content').textContent = '登录成功！Token: ' + data.token.substring(0, 50) + '...\n已保存到 localStorage';
+        } else {
+          document.getElementById('result-content').textContent = JSON.stringify(data, null, 2);
+        }
+        document.getElementById('test-result').style.display = 'block';
+      } catch (error) {
+        document.getElementById('result-content').textContent = 'Error: ' + error.message;
+        document.getElementById('test-result').style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>
