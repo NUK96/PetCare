@@ -30,16 +30,34 @@ class Deworming {
   }
 
   /**
-   * 查找宠物的驱虫记录
+   * 查找驱虫记录 (支持过滤)
    */
-  static async findByPetId(petId) {
-    const sql = `
-      SELECT * FROM dewormings 
-      WHERE pet_id = ? 
-      ORDER BY deworm_date DESC
-    `;
+  static async find(filters = {}) {
+    const { pet_id, type } = filters;
+    let sql = `SELECT * FROM dewormings WHERE 1=1`;
+    const params = [];
     
-    return await db.query(sql, [petId]);
+    if (pet_id) {
+      sql += ` AND pet_id = ?`;
+      params.push(pet_id);
+    }
+    
+    if (type) {
+      sql += ` AND type = ?`;
+      params.push(type);
+    }
+    
+    sql += ` ORDER BY deworm_date DESC`;
+    
+    return await db.query(sql, params);
+  }
+
+  /**
+   * 查找单个记录
+   */
+  static async findById(id) {
+    const sql = `SELECT * FROM dewormings WHERE id = ?`;
+    return await db.queryOne(sql, [id]);
   }
 
   /**
@@ -61,43 +79,36 @@ class Deworming {
   /**
    * 更新驱虫记录
    */
-  static async update(id, petId, data) {
-    const sql = `
-      UPDATE dewormings 
-      SET type = ?, product_name = ?, deworm_date = ?, 
-          next_date = ?, dosage = ?, note = ?, updated_at = NOW()
-      WHERE id = ? AND pet_id = ?
-    `;
+  static async update(id, data) {
+    const allowedFields = ['type', 'product_name', 'deworm_date', 'next_date', 'dosage', 'note', 'reminded'];
+    const updates = [];
+    const params = [];
     
-    const params = [
-      data.type,
-      data.product_name,
-      data.deworm_date,
-      data.next_date,
-      data.dosage,
-      data.note,
-      id,
-      petId
-    ];
+    for (const field of allowedFields) {
+      if (data[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        params.push(data[field]);
+      }
+    }
     
+    if (updates.length === 0) {
+      return await this.findById(id);
+    }
+    
+    updates.push('updated_at = NOW()');
+    params.push(id);
+    
+    const sql = `UPDATE dewormings SET ${updates.join(', ')} WHERE id = ?`;
     await db.query(sql, params);
-    return await this.findById(id, petId);
-  }
-
-  /**
-   * 查找单个记录
-   */
-  static async findById(id, petId) {
-    const sql = `SELECT * FROM dewormings WHERE id = ? AND pet_id = ?`;
-    return await db.queryOne(sql, [id, petId]);
+    return await this.findById(id);
   }
 
   /**
    * 删除驱虫记录
    */
-  static async delete(id, petId) {
-    const sql = `DELETE FROM dewormings WHERE id = ? AND pet_id = ?`;
-    await db.query(sql, [id, petId]);
+  static async delete(id) {
+    const sql = `DELETE FROM dewormings WHERE id = ?`;
+    await db.query(sql, [id]);
   }
 
   /**

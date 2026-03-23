@@ -39,21 +39,35 @@ class User {
    * 更新用户信息
    */
   static async update(id, data) {
-    const sql = `
-      UPDATE users 
-      SET nickname = ?, avatar = ?, phone = ?, updated_at = NOW()
-      WHERE id = ?
-    `;
+    const allowedFields = ['nickname', 'avatar', 'phone'];
+    const updates = [];
+    const params = [];
     
-    const params = [
-      data.nickname,
-      data.avatar,
-      data.phone,
-      id
-    ];
+    for (const field of allowedFields) {
+      if (data[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        params.push(data[field]);
+      }
+    }
     
+    if (updates.length === 0) {
+      return await this.findById(id);
+    }
+    
+    updates.push('updated_at = NOW()');
+    params.push(id);
+    
+    const sql = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
     await db.query(sql, params);
     return await this.findById(id);
+  }
+
+  /**
+   * 删除用户
+   */
+  static async delete(id) {
+    const sql = `DELETE FROM users WHERE id = ?`;
+    await db.query(sql, [id]);
   }
 
   /**

@@ -34,16 +34,35 @@ class Vaccine {
   }
 
   /**
-   * 查找宠物的疫苗记录
+   * 查找疫苗记录 (支持过滤)
    */
-  static async findByPetId(petId) {
-    const sql = `
-      SELECT * FROM vaccines 
-      WHERE pet_id = ? 
-      ORDER BY vaccine_date DESC
-    `;
+  static async find(filters = {}) {
+    const { pet_id, status } = filters;
+    let sql = `SELECT * FROM vaccines WHERE 1=1`;
+    const params = [];
     
-    return await db.query(sql, [petId]);
+    if (pet_id) {
+      sql += ` AND pet_id = ?`;
+      params.push(pet_id);
+    }
+    
+    if (status === 'upcoming') {
+      sql += ` AND next_date IS NOT NULL AND next_date <= DATE_ADD(NOW(), INTERVAL 30 DAY)`;
+    } else if (status === 'overdue') {
+      sql += ` AND next_date IS NOT NULL AND next_date < NOW()`;
+    }
+    
+    sql += ` ORDER BY vaccine_date DESC`;
+    
+    return await db.query(sql, params);
+  }
+
+  /**
+   * 查找单个记录
+   */
+  static async findById(id) {
+    const sql = `SELECT * FROM vaccines WHERE id = ?`;
+    return await db.queryOne(sql, [id]);
   }
 
   /**
@@ -65,47 +84,36 @@ class Vaccine {
   /**
    * 更新疫苗记录
    */
-  static async update(id, petId, data) {
-    const sql = `
-      UPDATE vaccines 
-      SET vaccine_name = ?, vaccine_type = ?, vaccine_date = ?, 
-          next_date = ?, hospital_name = ?, doctor_name = ?, 
-          batch_number = ?, note = ?, photo = ?, updated_at = NOW()
-      WHERE id = ? AND pet_id = ?
-    `;
+  static async update(id, data) {
+    const allowedFields = ['vaccine_name', 'vaccine_type', 'vaccine_date', 'next_date', 'hospital_name', 'doctor_name', 'batch_number', 'note', 'photo', 'reminded'];
+    const updates = [];
+    const params = [];
     
-    const params = [
-      data.vaccine_name,
-      data.vaccine_type,
-      data.vaccine_date,
-      data.next_date,
-      data.hospital_name,
-      data.doctor_name,
-      data.batch_number,
-      data.note,
-      data.photo,
-      id,
-      petId
-    ];
+    for (const field of allowedFields) {
+      if (data[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        params.push(data[field]);
+      }
+    }
     
+    if (updates.length === 0) {
+      return await this.findById(id);
+    }
+    
+    updates.push('updated_at = NOW()');
+    params.push(id);
+    
+    const sql = `UPDATE vaccines SET ${updates.join(', ')} WHERE id = ?`;
     await db.query(sql, params);
-    return await this.findById(id, petId);
-  }
-
-  /**
-   * 查找单个记录
-   */
-  static async findById(id, petId) {
-    const sql = `SELECT * FROM vaccines WHERE id = ? AND pet_id = ?`;
-    return await db.queryOne(sql, [id, petId]);
+    return await this.findById(id);
   }
 
   /**
    * 删除疫苗记录
    */
-  static async delete(id, petId) {
-    const sql = `DELETE FROM vaccines WHERE id = ? AND pet_id = ?`;
-    await db.query(sql, [id, petId]);
+  static async delete(id) {
+    const sql = `DELETE FROM vaccines WHERE id = ?`;
+    await db.query(sql, [id]);
   }
 
   /**

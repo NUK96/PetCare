@@ -48,56 +48,52 @@ class Pet {
   }
 
   /**
-   * 查找单个宠物
+   * 查找单个宠物 (不验证用户)
    */
-  static async findById(id, userId) {
-    const sql = `
-      SELECT * FROM pets 
-      WHERE id = ? AND user_id = ?
-    `;
-    
-    return await db.queryOne(sql, [id, userId]);
+  static async findById(id) {
+    const sql = `SELECT * FROM pets WHERE id = ?`;
+    return await db.queryOne(sql, [id]);
   }
 
   /**
    * 更新宠物信息
    */
-  static async update(id, userId, data) {
-    const sql = `
-      UPDATE pets 
-      SET name = ?, breed = ?, weight = ?, neutered = ?, allergy = ?, 
-          medical_history = ?, avatar = ?, updated_at = NOW()
-      WHERE id = ? AND user_id = ?
-    `;
+  static async update(id, data) {
+    const allowedFields = ['name', 'species', 'breed', 'birthday', 'gender', 'weight', 'neutered', 'allergy', 'medical_history', 'avatar', 'is_default'];
+    const updates = [];
+    const params = [];
     
-    const params = [
-      data.name,
-      data.breed,
-      data.weight,
-      data.neutered,
-      data.allergy,
-      data.medical_history,
-      data.avatar,
-      id,
-      userId
-    ];
+    for (const field of allowedFields) {
+      if (data[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        params.push(data[field]);
+      }
+    }
     
+    if (updates.length === 0) {
+      return await this.findById(id);
+    }
+    
+    updates.push('updated_at = NOW()');
+    params.push(id);
+    
+    const sql = `UPDATE pets SET ${updates.join(', ')} WHERE id = ?`;
     await db.query(sql, params);
-    return await this.findById(id, userId);
+    return await this.findById(id);
   }
 
   /**
    * 删除宠物
    */
-  static async delete(id, userId) {
-    const sql = `DELETE FROM pets WHERE id = ? AND user_id = ?`;
-    await db.query(sql, [id, userId]);
+  static async delete(id) {
+    const sql = `DELETE FROM pets WHERE id = ?`;
+    await db.query(sql, [id]);
   }
 
   /**
-   * 设置默认宠物
+   * 设置用户默认宠物
    */
-  static async setAsDefault(id, userId) {
+  static async setDefaultForUser(userId, petId) {
     const sql = `
       UPDATE pets 
       SET is_default = CASE WHEN id = ? THEN TRUE ELSE FALSE END,
@@ -105,7 +101,7 @@ class Pet {
       WHERE user_id = ?
     `;
     
-    await db.query(sql, [id, userId]);
+    await db.query(sql, [petId, userId]);
   }
 }
 
