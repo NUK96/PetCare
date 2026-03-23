@@ -73,6 +73,28 @@
         </view>
       </view>
     </view>
+
+    <!-- 快捷功能 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">快捷功能</text>
+      </view>
+      
+      <view class="quick-actions">
+        <view class="action-item" @click="goToHealthRecord">
+          <text class="action-icon">🏥</text>
+          <text class="action-text">健康记录</text>
+        </view>
+        <view class="action-item" @click="goToKnowledge">
+          <text class="action-icon">📚</text>
+          <text class="action-text">养宠知识</text>
+        </view>
+        <view class="action-item" @click="goToAddPet">
+          <text class="action-icon">➕</text>
+          <text class="action-text">添加宠物</text>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -221,6 +243,20 @@ export default {
       uni.navigateTo({
         url: `/pages/pet-detail/pet-detail?id=${petId}`
       });
+    },
+    
+    // 跳转到健康记录
+    goToHealthRecord() {
+      uni.navigateTo({
+        url: '/pages/health-record/health-record'
+      });
+    },
+    
+    // 跳转到知识库
+    goToKnowledge() {
+      uni.navigateTo({
+        url: '/pages/knowledge/knowledge'
+      });
     }
   }
 }
@@ -354,6 +390,31 @@ export default {
         font-size: 24rpx;
         color: #FF3B30;
       }
+    }
+  }
+}
+
+.quick-actions {
+  display: flex;
+  gap: 20rpx;
+  
+  .action-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #FFF;
+    border-radius: 12rpx;
+    padding: 30rpx 20rpx;
+    
+    .action-icon {
+      font-size: 48rpx;
+      margin-bottom: 15rpx;
+    }
+    
+    .action-text {
+      font-size: 26rpx;
+      color: #666;
     }
   }
 }
