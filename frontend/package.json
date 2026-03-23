@@ -10,14 +10,14 @@
     "build:h5": "uni build -p h5"
   },
   "dependencies": {
-    "@dcloudio/uni-app": "^3.0.0",
-    "vue": "^3.2.45",
-    "pinia": "^2.0.30",
-    "uview-ui": "^2.0.36"
+    "@dcloudio/uni-app": "latest",
+    "@dcloudio/uni-components": "latest",
+    "vue": "^3.4.21",
+    "pinia": "^2.1.7"
   },
   "devDependencies": {
-    "@dcloudio/uni-cli-shared": "^3.0.0",
-    "@dcloudio/vite-plugin-uni": "^3.0.0",
-    "vite": "^4.0.0"
+    "@dcloudio/uni-cli-shared": "latest",
+    "@dcloudio/vite-plugin-uni": "latest",
+    "vite": "^5.1.6"
   }
 }
